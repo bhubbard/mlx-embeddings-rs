@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mlx-embeddings-rs - Apple Silicon Text & Vision Embeddings in Rust</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <header class="navbar">
+    <div class="nav-brand">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">mlx-embeddings-rs</span>
+      <span class="badge">v0.0.1</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#models">Models</a>
+      <a href="#pooling">Pooling Playground</a>
+      <a href="#maxsim">ColBERT MaxSim</a>
+      <a href="#search">Semantic Search</a>
+      <a href="https://github.com/bhubbard/mlx-embeddings-rs" class="github-btn" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-badge">Apple Silicon Unified Memory • MLX Metal Acceleration</div>
+      <h1>Native Apple Silicon Embedding Engine in Safe Rust</h1>
+      <p class="hero-desc">
+        A 100% pure Rust embedding framework powered by MLX. Delivers high-throughput text, vision, and multi-vector
+        late-interaction representations with zero Python runtime overhead.
+      </p>
+      <div class="hero-actions">
+        <a href="#pooling" class="btn btn-primary">Try Pooling Playground</a>
+        <a href="https://github.com/bhubbard/mlx-embeddings-rs" class="btn btn-secondary">View Source Code</a>
+      </div>
+    </section>
+
+    <!-- Supported Model Architectures -->
+    <section id="models" class="section">
+      <div class="section-header">
+        <h2>Supported Embedding Architectures</h2>
+        <p>State-of-the-art architectures optimized for Metal GPU cores and unified RAM</p>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="card-icon">⚡</div>
+          <h3>ModernBERT</h3>
+          <p>Unpadded FlashAttention, GeGLU feed-forward networks, and Rotary Position Embeddings scaling up to 8,192 token context windows.</p>
+        </div>
+        <div class="arch-card">
+          <div class="card-icon">👁️</div>
+          <h3>SigLIP Vision</h3>
+          <p>Sigmoid loss vision transformers extracting spatial patch tokens and global semantic image vectors for multimodal retrieval.</p>
+        </div>
+        <div class="arch-card">
+          <div class="card-icon">🎯</div>
+          <h3>ColBERT v2</h3>
+          <p>Token-level multi-vector late interaction via MaxSim operator for superior precision without large cross-encoder latency.</p>
+        </div>
+        <div class="arch-card">
+          <div class="card-icon">📚</div>
+          <h3>BGE / BERT</h3>
+          <p>Dense text embeddings with customizable CLS, Mean, Max, and Last-Token pooling strategies with L2 unit sphere normalization.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Pooling Playground -->
+    <section id="pooling" class="section">
+      <div class="section-header">
+        <h2>Interactive Pooling Playground</h2>
+        <p>Inspect how different pooling algorithms reduce token sequences into dense sentence embeddings</p>
+      </div>
+
+      <div class="card interactive-card">
+        <div class="controls-row">
+          <div class="control-group">
+            <label for="pooling-select">Pooling Strategy:</label>
+            <select id="pooling-select">
+              <option value="mean" selected>Mean Pooling (sum(tokens * mask) / sum(mask))</option>
+              <option value="cls">CLS Token Pooling (first unpadded position)</option>
+              <option value="max">Max Pooling (max unmasked feature)</option>
+              <option value="lasttoken">Last Token Pooling (last attended token)</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="padding-style">Padding Pattern:</label>
+            <select id="padding-style">
+              <option value="right" selected>Right-Padded (Encoder: [1, 1, 1, 0])</option>
+              <option value="left">Left-Padded (Decoder: [0, 0, 1, 1])</option>
+              <option value="none">No Padding ([1, 1, 1, 1])</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="vis-grid">
+          <div class="vis-box">
+            <h4>Token Embeddings Sequence [4 tokens, 4 dim]</h4>
+            <div id="tokens-matrix" class="matrix-display"></div>
+          </div>
+          <div class="vis-box">
+            <h4>Attention Mask & Pooled Vector [1 × 4]</h4>
+            <div id="mask-display" class="mask-display"></div>
+            <div id="pooled-vector" class="vector-display"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ColBERT MaxSim Late Interaction -->
+    <section id="maxsim" class="section">
+      <div class="section-header">
+        <h2>ColBERT MaxSim Late-Interaction Visualizer</h2>
+        <p>Computes token alignment matrix: Score = &sum;<sub>q</sub> max<sub>d</sub> (q &middot; d<sup>T</sup>)</p>
+      </div>
+
+      <div class="card interactive-card">
+        <div class="maxsim-container">
+          <div class="maxsim-matrix-wrap">
+            <table class="maxsim-table" id="maxsim-table">
+              <!-- populated by app.js -->
+            </table>
+          </div>
+          <div class="maxsim-summary">
+            <h3>MaxSim Aggregation:</h3>
+            <ul id="maxsim-breakdown" class="breakdown-list"></ul>
+            <div class="score-callout">
+              <span class="callout-label">Total Late-Interaction Score:</span>
+              <span class="callout-val" id="maxsim-total">0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Semantic Search Playground -->
+    <section id="search" class="section">
+      <div class="section-header">
+        <h2>Semantic Search & Cosine Similarity</h2>
+        <p>Rank candidate documents by cosine similarity against your query</p>
+      </div>
+
+      <div class="card interactive-card">
+        <div class="search-input-group">
+          <label for="search-query">Query:</label>
+          <input type="text" id="search-query" value="Apple Silicon unified memory performance" class="text-input">
+        </div>
+
+        <div class="corpus-list" id="search-results">
+          <!-- populated by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- CLI Usage Section -->
+    <section class="section">
+      <div class="section-header">
+        <h2>Command Line Usage</h2>
+        <p>Fast, scriptable CLI built directly into the native Rust binary</p>
+      </div>
+
+      <div class="code-terminal">
+        <div class="terminal-bar">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="terminal-title">bash - mlx-embeddings CLI</span>
+        </div>
+        <pre><code><span class="c"># Generate embeddings with ModernBERT and Mean pooling</span>
+<span class="cmd">mlx-embeddings</span> embed --text <span class="str">"High-speed dense vector embeddings on Apple Silicon"</span> --model modern-bert
+
+<span class="c"># Compute cosine similarity between two sentences</span>
+<span class="cmd">mlx-embeddings</span> similarity -a <span class="str">"Neural search on Metal"</span> -b <span class="str">"Deep learning on Apple GPU"</span>
+
+<span class="c"># Perform top-k semantic search over a collection</span>
+<span class="cmd">mlx-embeddings</span> search --query <span class="str">"Machine learning"</span> --docs <span class="str">"AI research,Cooking recipes,Computer vision"</span> --top-k 2
+
+<span class="c"># Inspect model architecture details</span>
+<span class="cmd">mlx-embeddings</span> info --model col-bert</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>Released under MIT OR Apache-2.0 License • Native Apple Silicon Rust & MLX</p>
+      <p><a href="https://github.com/bhubbard/mlx-embeddings-rs">github.com/bhubbard/mlx-embeddings-rs</a></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
